@@ -1,0 +1,20 @@
+## 19 Feb 24 10:34 EST
+
+Success: true
+
+### Versions
+
+Terraform v1.6.3
+on windows_amd64
++ provider registry.terraform.io/hashicorp/azurerm v3.71.0
++ provider registry.terraform.io/hashicorp/random v3.5.1
+
+Your version of Terraform is out of date! The latest version
+is 1.7.3. You can update by downloading from https://www.terraform.io/downloads.html
+
+### Error
+
+
+
+---
+
