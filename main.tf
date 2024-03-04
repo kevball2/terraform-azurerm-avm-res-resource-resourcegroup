@@ -4,7 +4,7 @@ resource "azurerm_resource_group" "this" {
   tags     = var.tags
 }
 
-# required ECM resources interfaces
+# required AVM resources interfaces
 resource "azurerm_management_lock" "this" {
   count      = var.lock.kind != "None" ? 1 : 0
   lock_level = var.lock.kind

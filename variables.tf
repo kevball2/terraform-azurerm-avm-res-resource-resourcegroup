@@ -21,12 +21,13 @@ variable "name" {
   "Required. The name of the this resource."
   DESCRIPTION
   validation {
-    condition     = can(regex("^[a-zA-Z0-9_().-]{1,90}$", var.name))
-    error_message = <<DESCRIPTION
+    condition     = can(regex("^[a-zA-Z0-9_().-]{1,89}[a-zA-Z0-9_()-]$", var.name))
+    error_message = <<ERROR_MESSAGE
     The resource group name must meet the following requirements:
     - Between 1 and 90 characters long. 
     - Can only contain Alphanumerics, underscores, parentheses, hyphens, periods.
-    DESCRIPTION
+    - Cannot end in a period
+    ERROR_MESSAGE
   }
 }
 
@@ -53,7 +54,7 @@ variable "lock" {
   DESCRIPTION
   validation {
     condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
-    error_message = "Lock kind must be either `\"CanNotDelete\"` or `\"ReadOnly\"`."
+    error_message = "Lock kind must be either `\"CanNotDelete\"`, `\"ReadOnly\"` or `\"None\"`."
   }
 }
 
@@ -122,6 +123,20 @@ EOT
 }
 ```
 DESCRIPTION
+validation {
+    condition = alltrue(
+      [for role in var.role_assignments :
+        can(regex("^/providers/Microsoft\\.Authorization/roleDefinitions/[0-9a-fA-F-]+$", role.role_definition_id_or_name))
+        ||
+        can(regex("^[[:alpha:]]+?", role.role_definition_id_or_name))
+      ]
+    )
+    error_message = <<ERROR_MESSAGE
+        role_definition_id_or_name must have the following format: 
+         - Using the role definition Id : /providers/Microsoft.Authorization/roleDefinitions/<role_guid>
+         - Using the role name: Reader | "Storage Blob Data Reader"
+      ERROR_MESSAGE 
+  }
 }
 
 # tflint-ignore: terraform_unused_declarations

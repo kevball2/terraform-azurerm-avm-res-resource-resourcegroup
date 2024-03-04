@@ -1,15 +1,7 @@
 variables {
   name = "rg-test"
-  role_assignments = {
-    "role_assignment_test" = {
-      role_definition_id_or_name = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
-      principal_id               = "a1542709-380b-49dd-bcde-a74351bc22cb"
-    }
-  }
-  #azure_environment = "usgovernment"
   lock = {
     kind = "CanNotDelete"
-    name = "myCustomLockName"
   }
 }
 
@@ -20,16 +12,39 @@ provider "azurerm" {
   environment                = startswith(var.location, "usgov") ? "usgovernment" : "public"
 }
 
+run "test_resource_group_name_validation_succeeds" {
+  command = plan
+  variables {
+    name = "badresourcegroupname."
+  }
 
-run "validate_lock_name_matches_input" {
+  expect_failures = [
+    var.name
+  ]
+}
+
+run "test_lock_name_not_provided_value" {
   command = plan
   assert {
-    condition     = azurerm_management_lock.this[0].name == "lock-rg-test" || azurerm_management_lock.this[0].name == var.lock.name
+    condition     = azurerm_management_lock.this[0].name == "lock-rg-test"
     error_message = "Lock name didn't match expected value"
   }
 }
 
-run "validate_lock_level_matches_input" {
+run "test_lock_name_provided_value" {
+  command = plan
+  lock = {
+    kind = "CanNotDelete"
+    name = "myCustomLockName"
+  }
+  assert {
+    condition     = azurerm_management_lock.this[0].name == var.lock.name
+    error_message = "Lock name didn't match expected value"
+  }
+}
+
+
+run "test_lock_kind_matches_allowed_values" {
   command = plan
   assert {
     condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
@@ -37,25 +52,56 @@ run "validate_lock_level_matches_input" {
   }
 }
 
-run "validate_lock_name_begins_with_prefix" {
+run "test_lock_kind_validation_succeeds" {
   command = plan
-  assert {
-    condition     = azurerm_management_lock.this[0].name == var.lock.name || startswith(azurerm_management_lock.this[0].name, "lock-")
-    error_message = "Lock name does not start with the correct prefix"
+  variables {
+    lock = {
+      kind = "badvalue"
+    }
   }
 
-  assert {
-    condition     = length(azurerm_management_lock.this[0].name) <= 90 && length(azurerm_management_lock.this[0].name) >= 1
-    error_message = "Lock name length "
-  }
-
+  expect_failures = [
+    var.lock.kind
+  ]
 }
 
-run "validate_lock_name_length" {
+run "test_role_assignment_role_definition_name" {
   command = plan
-  assert {
-    condition     = length(azurerm_management_lock.this[0].name) <= 90 && length(azurerm_management_lock.this[0].name) >= 1
-    error_message = "Lock name length "
+  variables {
+    role_assignments = {
+      "role_assignment_name_test" = {
+        role_definition_id_or_name = "Reader"
+        principal_id               = "a1542709-380b-49dd-bcde-a74351bc22cb"
+      }
+    }
+  }
+}
+
+run "test_role_assignment_role_definition_id" {
+  command = plan
+  variables {
+    role_assignments = {
+      "role_assignment_id_test" = {
+        role_definition_id_or_name = "/providers/Microsoft.Authorization/roleDefinitions/2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
+        principal_id               = "a1542709-380b-49dd-bcde-a74351bc22cb"
+      }
+    }
+  }
+}
+
+run "test_role_assignment_role_definition_id_validation_succeeds" {
+  command = plan
+  variables {
+    role_assignments = {
+      "role_assignment_id_test" = {
+        role_definition_id_or_name = "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
+        principal_id               = "a1542709-380b-49dd-bcde-a74351bc22cb"
+      }
+    }
   }
 
+  expect_failures = [
+    var.role_assignments
+  ]
 }
+
