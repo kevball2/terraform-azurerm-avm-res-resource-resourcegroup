@@ -1,13 +1,3 @@
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
-}
-
 variable "location" {
   type        = string
   description = <<DESCRIPTION
@@ -20,6 +10,7 @@ variable "name" {
   description = <<DESCRIPTION
   "Required. The name of the this resource."
   DESCRIPTION
+
   validation {
     condition     = can(regex("^[a-zA-Z0-9_().-]{1,89}[a-zA-Z0-9_()-]$", var.name))
     error_message = <<ERROR_MESSAGE
@@ -29,6 +20,16 @@ variable "name" {
     - Cannot end in a period
     ERROR_MESSAGE
   }
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
 }
 
 variable "lock" {
@@ -52,6 +53,7 @@ variable "lock" {
     }
   ```
   DESCRIPTION
+
   validation {
     condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
     error_message = "Lock kind must be either `\"CanNotDelete\"`, `\"ReadOnly\"` or `\"None\"`."
@@ -123,7 +125,8 @@ EOT
 }
 ```
 DESCRIPTION
-validation {
+
+  validation {
     condition = alltrue(
       [for role in var.role_assignments :
         can(regex("^/providers/Microsoft\\.Authorization/roleDefinitions/[0-9a-fA-F-]+$", role.role_definition_id_or_name))

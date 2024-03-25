@@ -10,9 +10,9 @@ module "naming" {
 # }
 
 resource "azurerm_user_assigned_identity" "dep_uai" {
+  location            = module.resource_group.resource.location
   name                = module.naming.user_assigned_identity.name_unique
   resource_group_name = module.resource_group.resource.name
-  location            = module.resource_group.resource.location
 }
 
 module "resource_group" {
