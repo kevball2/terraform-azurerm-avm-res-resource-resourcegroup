@@ -1,13 +1,19 @@
 # Importing the Azure naming module to ensure resources have unique CAF compliant names.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.0"
+  version = " >= 0.4.0"
 }
 
-# resource "azurerm_resource_group" "dep-rg" {
-#   location = var.location
-#   name     = "rg-complete-test"
-# }
+module "regions" {
+  source  = "Azure/regions/azurerm"
+  version = ">= 0.3.0"
+}
+
+# This allows us to randomize the region for the resource group.
+resource "random_integer" "region_index" {
+  max = length(module.regions.regions) - 1
+  min = 0
+}
 
 resource "azurerm_user_assigned_identity" "dep_uai" {
   location            = module.resource_group.resource.location
@@ -17,7 +23,7 @@ resource "azurerm_user_assigned_identity" "dep_uai" {
 
 module "resource_group" {
   source   = "../../"
-  location = var.location
+  location = module.regions.regions[random_integer.region_index.result].name
   name     = module.naming.resource_group.name_unique
   tags = {
     "hidden-title" = "This is visible in the resource name"
