@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 usage () {
-  echo "Usage: avm <make target>"
+  echo "Usage: make <make target>"
 }
 
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
