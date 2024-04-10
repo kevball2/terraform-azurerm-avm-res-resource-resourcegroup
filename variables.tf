@@ -1,23 +1,19 @@
 variable "location" {
   type        = string
-  description = <<DESCRIPTION
-  "Required. The Azure region for deployment of the this resource."
-  DESCRIPTION
+  description = "Required. The Azure region for deployment of the this resource."
 }
 
 variable "name" {
   type        = string
-  description = <<DESCRIPTION
-  "Required. The name of the this resource."
-  DESCRIPTION
+  description = "Required. The name of the this resource."
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9_().-]{1,89}[a-zA-Z0-9_()-]$", var.name))
     error_message = <<ERROR_MESSAGE
     The resource group name must meet the following requirements:
-    - Between 1 and 90 characters long. 
-    - Can only contain Alphanumerics, underscores, parentheses, hyphens, periods.
-    - Cannot end in a period
+    - `Between 1 and 90 characters long.` 
+    - `Can only contain Alphanumerics, underscores, parentheses, hyphens, periods.`
+    - `Cannot end in a period`
     ERROR_MESSAGE
   }
 }
@@ -34,32 +30,24 @@ DESCRIPTION
 
 variable "lock" {
   type = object({
-    kind = optional(string, "None")
+    kind = string
     name = optional(string, null)
   })
-  default     = {}
+  default     = null
   description = <<DESCRIPTION
   Controls the Resource Lock configuration for this resource. The following properties can be specified:
   
-  - `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"`, `\"ReadOnly\"` and `\"None\"`.
+  - `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
   - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
-  
-  Example Input:
-
-  ```hcl
-  lock = {
-      kind = "CanNotDelete"|"ReadOnly"|"None"
-      name = "lock-<name>"
-    }
-  ```
   DESCRIPTION
 
   validation {
-    condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
-    error_message = "Lock kind must be either `\"CanNotDelete\"`, `\"ReadOnly\"` or `\"None\"`."
+    condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
+    error_message = "Lock kind must be either `\"CanNotDelete\"` or `\"ReadOnly\"`."
   }
 }
 
+# tflint-ignore: terraform_heredoc_usage
 variable "role_assignments" {
   type = map(object({
     role_definition_id_or_name             = string
@@ -71,6 +59,7 @@ variable "role_assignments" {
     delegated_managed_identity_resource_id = optional(string, null)
   }))
   default     = {}
+  nullable    = false
   description = <<DESCRIPTION
 Optional. A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -136,7 +125,7 @@ DESCRIPTION
     )
     error_message = <<ERROR_MESSAGE
         role_definition_id_or_name must have the following format: 
-         - Using the role definition Id : /providers/Microsoft.Authorization/roleDefinitions/<role_guid>
+         - Using the role definition Id : `/providers/Microsoft.Authorization/roleDefinitions/<role_guid>`
          - Using the role name: Reader | "Storage Blob Data Reader"
       ERROR_MESSAGE 
   }
@@ -144,9 +133,7 @@ DESCRIPTION
 
 # tflint-ignore: terraform_unused_declarations
 variable "tags" {
-  type        = map(any)
-  default     = {}
-  description = <<DESCRIPTION
-  "Optional. The map of tags to be applied to the resource"
-  DESCRIPTION
+  type        = map(string)
+  default     = null
+  description = "(Optional) Tags of the resource."
 }
